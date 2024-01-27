@@ -2,6 +2,7 @@
 (require (lib "eopl.ss" "eopl"))
 
 (define-datatype statement statement?
+  (statements (stms (list-of statement?)))
   (assign (var string?) (expr expression?))
   (global (var string?))
   (return (expr expression?))
@@ -35,12 +36,54 @@
   (atomic_num_exp (num number?))
   (atomic_null_exp)
   (atomic_list_exp (l expression*?))
-  )
+; added by me
+  (continue_flag)
+  (break_flag)
+  (return_void_flag)
+  (pass_flag)
+)
 
 (define-datatype expression* expression*?
   (empty-expr)
   (expressions (expr expression?) (rest-exprs expression*?))
+)
+
+(define (exprs->first exprs)
+  (cases expression* exprs
+    (empty-expr () "error, no first exists")
+    (expressions (expr rest-exprs) expr)  
   )
+)
+
+(define (exprs->rest exprs)
+  (cases expression* exprs
+    (empty-expr () "error, no rest exists")
+    (expressions (expr rest-exprs) rest-exprs)  
+  )
+)
+
+(define (is_null_expression? exprs)
+  (cases expression* exprs
+    (empty-expr () #t)
+    (else #f)  
+  )
+)
+
+(define (exp->value expr)
+  (cases expression expr
+    [atomic_bool_exp (bool) bool]
+    [atomic_list_exp (l) l]
+    [atomic_num_exp (num) num]
+    ; [atomic_null_exp () "not supported"]
+    ; [binary_op (op left right) "not supported"]
+    ; [unary_op (op operand) "not supported"]
+    ; [function_call (func params) "not supported"]
+    ; [list_ref (ref index) "not supported"]
+    ; [ref (var) "not supported"]
+    [else "not supported"]
+  )
+)
+
 
 (provide (all-defined-out))
 (#%provide (all-defined))

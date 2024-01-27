@@ -1,15 +1,13 @@
-def function():
-  pass;;
-
-for i in range(10):
-  x = i+2;
-  x=x+2;;
-for i in [2, 3]:
-  z = 1;
-  break;;
-
-i=2;
-if i==2:
-    pass;
-else:
-    break;;
+x = 20;
+print(x);
+y = 30;
+a = 2;
+b = 54;
+print(x + y);
+print(x);
+print(y);
+c = a * b;
+print(c);
+print(c / 9 + x);
+x = 0;
+print(x);
