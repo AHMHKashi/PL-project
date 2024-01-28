@@ -71,6 +71,11 @@
 )
 
 (define (exp->value expr)
+(begin
+  ; (print "exp->val: ")
+  ; (print expr)
+  ; (newline)
+
   (cases expression expr
     [atomic_bool_exp (bool) bool]
     [atomic_list_exp (l) l]
@@ -79,12 +84,12 @@
     ; [binary_op (op left right) "not supported"]
     ; [unary_op (op operand) "not supported"]
     ; [function_call (func params) "not supported"]
-    ; [list_ref (ref index) "not supported"]
-    ; [ref (var) "not supported"]
+    ; [list_ref (ref index) ref]
+    [ref (var) var]
     [else "not supported"]
   )
 )
-
+)
 
 (provide (all-defined-out))
 (#%provide (all-defined))

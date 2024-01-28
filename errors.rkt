@@ -21,6 +21,9 @@
 (define (report-must-not-reach-here)
   (eopl:error 'value-of "Must not reach here."))
 
+(define (report-index-out-of-bound)
+  (eopl:error 'array "report-index-out-of-bound"))
+
 (define (report-reference-type-error)
   (eopl:error 'store "reference used type is wrong"))
 

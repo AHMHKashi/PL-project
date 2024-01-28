@@ -80,19 +80,10 @@
           )
         )
 
-
         (assign (var expr) (let ()
             (_assign var expr)
             NULL
-        )
-          ; (let ([current_variable (apply-env var the-scope-env)]
-          ;   (cases expression current_variable
-          ;     ; if its new -> we should add it to scope
-          ;     [atomic_null_exp (update-scope-env! (extend-env var (newref (value-of-expression expr)) the-scope-env))]
-          ;     ; if already exists we should update it
-          ;     [else (update-scope-env! (extend-env var (newref)))]
-          ;   )
-        )
+        ))
 
         (global (var) 
           (let ([ref (apply-env var the-global-env)])
@@ -100,9 +91,6 @@
             NULL
           )
         )
-
-        (return (expr) "not implemented: global\n")
-        (func (name params statements) "not implemented: func\n")
         (for_stmt (iter list_exp sts)
           (let ([list_exp (exp->value (value-of-expression list_exp))]) ;get the expression* object as list
             (_assign iter NULL)
@@ -124,8 +112,11 @@
                 )
               )
             )
-            )
+          )
         )
+
+        (return (expr) "not implemented: global\n")
+        (func (name params statements) "not implemented: func\n")
     )
   )
 )
@@ -147,25 +138,6 @@
   )
 )
 
-; (define (assign ID rhs)
-;   (let ([val (apply-env ID the-scope-env #f)]
-;         [the-thunk (a-thunk (replace-var-exps rhs) the-scope-env)])
-;       (cases expval val
-
-
-;         (void-val ()
-;           (let ([ref (newref the-thunk)])
-;             (when (global-scope? the-scope-env)
-;               (update-global-env! (extend-env ID (ref-val ref) the-global-env)))
-;             (update-scope-env! (extend-env ID (ref-val ref) the-scope-env))
-;             (void-val)))
-
-
-;         (ref-val (ref)
-;           (setref! ref the-thunk)
-;           (void-val))
-;         (else (report-type-error 'assign)))))
-
 
 (define (_print exprs)
   (begin
@@ -184,6 +156,10 @@
 )
 
 (define (_pyprint expr)
+(begin
+; (printf "pypring expr:")
+  ; (print expr)
+  ; (newline)
   (let ((value (value-of-expression expr)))
   (cases expression value
     (atomic_num_exp (num)
@@ -208,9 +184,13 @@
             (loop (exprs->rest lst)))))
       (display "]"))
     (else (report-type-error 'print))))
-)
+))
 
 (define (value-of-expression expr)
+  (begin
+  ; (printf "value-of-expressison: ")
+  ; (print expr)
+  ; (newline)
   (cases expression expr
       [binary_op (op left right)
         (let ([result (op (exp->value (value-of-expression left)) (exp->value (value-of-expression right)))])
@@ -224,14 +204,32 @@
         (atomic_bool_exp (op (exp->value (value-of-expression operand))))
       ]
       [function_call (func params) "not implemented"]
-      [list_ref (ref index) "not implemented"]
-      [ref (var) (deref (exp->value (apply-env var the-scope-env)))]
 
+      [ref (var) (deref (exp->value (apply-env var the-scope-env)))]
+      [list_ref (ref index)
+
+        (let ([lst (exp->value (value-of-expression ref))]
+              [index (exp->value (value-of-expression index))])
+            ; (printf "ref: ")
+            ; (print ref)
+            ; (newline)
+            ; (printf "ref-val: ")
+            ; (print (exp->value ref))
+            ; (newline)
+            
+            (let loop ([lst lst][index index])
+                (if (is_null_expression? lst) report-index-out-of-bound
+                (if (zero? index) (exprs->first lst) (loop (exprs->rest lst) (- index 1)))
+              )
+            )
+        )
+      ]
       [atomic_bool_exp (bool) expr]
       [atomic_num_exp (num) expr]
       [atomic_null_exp () expr]
       [atomic_list_exp (l) expr]
       [else expr]
+  )
   )
 )
 
