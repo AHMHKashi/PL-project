@@ -50,3 +50,13 @@
 
 (define (update-scope-env! env)
   (set! the-scope-env env))
+
+(define (update-global-env! env)
+  (set! the-global-env env))
+
+  (define (global-scope? env)
+  (cases environment env
+    (empty-env-record (global)
+      global)
+    (extended-env-record (global var val next-env)
+      global)))

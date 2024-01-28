@@ -94,13 +94,12 @@
           ;   )
         )
 
-        (global (var) "not implemented: global") 
-        ; (global (var) 
-        ;   (let ([ref (apply-env var the-global-env)])
-        ;     (update-scope-env! (extend-env var ref the-scope-env))
-        ;     NULL
-        ;   )
-        ; )
+        (global (var) 
+          (let ([ref (apply-env var the-global-env)])
+            (update-scope-env! (extend-env var ref the-scope-env))
+            NULL
+          )
+        )
 
         (return (expr) "not implemented: global\n")
         (func (name params statements) "not implemented: func\n")
@@ -127,14 +126,6 @@
             )
             )
         )
-          ; (let loop ([list-exp list-exp])
-          ;   (let* ([lst-exp (value-of-expression list_exp)]
-          ;           [lst-value (exp->value lst-exp)])
-          ;     (if (is_null_expression? lst-value) NULL
-          ;       (update-scope-env! (extend-env iter ))
-          ;     )
-          ;   )  
-          ; )
     )
   )
 )
@@ -143,12 +134,38 @@
 (define (_assign var expr) 
   (let ([current_address (apply-env var the-scope-env)])
     (cases expression current_address
-      [atomic_null_exp () (update-scope-env! (extend-env var (atomic_num_exp (newref (value-of-expression expr))) the-scope-env))]
+      [atomic_null_exp () 
+        (let ([reference (atomic_num_exp (newref (value-of-expression expr)))])
+          (when (global-scope? the-scope-env)
+              (update-global-env! (extend-env var reference the-global-env)))
+          (update-scope-env! (extend-env var reference the-scope-env))
+        )
+      ]
       [atomic_num_exp (num) (setref! num (value-of-expression expr))]
       [else report-reference-type-error]
     )
   )
 )
+
+; (define (assign ID rhs)
+;   (let ([val (apply-env ID the-scope-env #f)]
+;         [the-thunk (a-thunk (replace-var-exps rhs) the-scope-env)])
+;       (cases expval val
+
+
+;         (void-val ()
+;           (let ([ref (newref the-thunk)])
+;             (when (global-scope? the-scope-env)
+;               (update-global-env! (extend-env ID (ref-val ref) the-global-env)))
+;             (update-scope-env! (extend-env ID (ref-val ref) the-scope-env))
+;             (void-val)))
+
+
+;         (ref-val (ref)
+;           (setref! ref the-thunk)
+;           (void-val))
+;         (else (report-type-error 'assign)))))
+
 
 (define (_print exprs)
   (begin
@@ -158,15 +175,15 @@
     [empty-expr () NULL]
     [expressions (expr rest-exprs) 
       (cases expression* rest-exprs
-        (empty-expr () (pyprint (exprs->first exprs)))
-        (expressions (new-expr new-rest-exprs) (pyprint expr) (display DELIMITER) (_print rest-exprs))
+        (empty-expr () (_pyprint (exprs->first exprs)))
+        (expressions (new-expr new-rest-exprs) (_pyprint expr) (display DELIMITER) (_print rest-exprs))
       )
     ]
   )
   )
 )
 
-(define (pyprint expr)
+(define (_pyprint expr)
   (let ((value (value-of-expression expr)))
   (cases expression value
     (atomic_num_exp (num)
@@ -185,7 +202,7 @@
         (if (is_null_expression? lst)
           NULL
           (begin
-            (pyprint (exprs->first lst))
+            (_pyprint (exprs->first lst))
             (when (not (is_null_expression? (exprs->rest lst)))
               (display DELIMITER))
             (loop (exprs->rest lst)))))
