@@ -91,14 +91,7 @@
             NULL
           )
         )
-        (func (name params statements)
-          (let loop ([params params])
-            (cases func_param* params
-              [empty-param]
-  (func_params (param func_param?) (rest-params func_param*?))
-            )
-          )
-        )
+        (func (name params statements) "not implemented: func")
       ;       (function-def-exp (ID params return-type statements)
       ; (let* ([thunk-params
       ;   (map
@@ -146,7 +139,6 @@
     )
   )
 )
-
 
 (define (_assign var expr) 
   (let ([current_address (apply-env var the-scope-env)])
