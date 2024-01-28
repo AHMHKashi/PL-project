@@ -82,7 +82,7 @@
 
 
         (assign (var expr) (let ()
-            (update-scope-env! (extend-env var (value-of-expression expr) the-scope-env))
+            (_assign var expr)
             NULL
         )
           ; (let ([current_variable (apply-env var the-scope-env)]
@@ -104,10 +104,42 @@
 
         (return (expr) "not implemented: global\n")
         (func (name params statements) "not implemented: func\n")
-        (for_stmt (iter list_exp sts) "not implemented: for_stmt\n")
+        (for_stmt (iter list_exp sts)
+          (let ([list_exp (exp->value (value-of-expression list_exp))]) ;get the expression* object as list
+            (_assign iter NULL)
+            (let ([iter-ref (exp->value (apply-env iter the-scope-env))]) ; iter-ref is now the address of our iter. actually a pointer
+              (let loop ([list_exp list_exp])
+                (if (is_null_expression? list_exp)
+                  NULL
+                  (begin
+                    (setref! iter-ref (exprs->first list_exp))
+                    (let ([val (value-of (statements sts))])
+                      (cases expression val
+                        (break_flag () NULL)
+                        (continue_flag () (loop (exprs->rest list_exp)))
+                        (return_void_flag () NULL)
+                        (else (loop (exprs->rest list_exp)))
+                      )
+                    )
+                  )
+                )
+              )
+            )
+            )
+        )
+          ; (let loop ([list-exp list-exp])
+          ;   (let* ([lst-exp (value-of-expression list_exp)]
+          ;           [lst-value (exp->value lst-exp)])
+          ;     (if (is_null_expression? lst-value) NULL
+          ;       (update-scope-env! (extend-env iter ))
+          ;     )
+          ;   )  
+          ; )
     )
   )
 )
+
+(define (_assign var expr) (update-scope-env! (extend-env var (atomic_num_exp (newref (value-of-expression expr))) the-scope-env)))
 
 (define (_print exprs)
   (begin
@@ -167,7 +199,7 @@
       ]
       [function_call (func params) "not implemented"]
       [list_ref (ref index) "not implemented"]
-      [ref (var) (apply-env var the-scope-env)]
+      [ref (var) (deref (exp->value (apply-env var the-scope-env)))]
 
       [atomic_bool_exp (bool) expr]
       [atomic_num_exp (num) expr]

@@ -10,4 +10,14 @@ c = a * b;
 print(c);
 print(c / 9 + x);
 x = 0;
+if True:
+    x = 100;
+else:
+    x = 200;
+;
 print(x);
+for i in [1, 2, 3]:
+    rand = 50;
+    check = 60;
+    print(i * rand + check / 20 ** 2);
+;

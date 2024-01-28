@@ -20,3 +20,20 @@
 
 (define (deref ref)
   (list-ref the-store ref))
+
+(define (setref! ref val)
+  (set! the-store
+    (letrec
+      ((setref-inner
+        (lambda (store1 ref1)
+          (cond
+            ((null? store1)
+              (report-invalid-reference ref))
+            ((zero? ref1)
+              (cons val (cdr store1)))
+            (else
+              (cons
+              (car store1)
+              (setref-inner
+                (cdr store1) (- ref1 1))))))))
+      (setref-inner the-store ref))))
