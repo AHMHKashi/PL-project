@@ -21,3 +21,9 @@ for i in [1, 2, 3]:
     check = 60;
     print(i * rand + check / 20 ** 2);
 ;
+i = 32;
+print(i);
+for i in [1000]:
+    print(i);
+;
+print(i);

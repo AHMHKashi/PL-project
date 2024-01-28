@@ -139,7 +139,16 @@
   )
 )
 
-(define (_assign var expr) (update-scope-env! (extend-env var (atomic_num_exp (newref (value-of-expression expr))) the-scope-env)))
+
+(define (_assign var expr) 
+  (let ([current_address (apply-env var the-scope-env)])
+    (cases expression current_address
+      [atomic_null_exp () (update-scope-env! (extend-env var (atomic_num_exp (newref (value-of-expression expr))) the-scope-env))]
+      [atomic_num_exp (num) (setref! num (value-of-expression expr))]
+      [else report-reference-type-error]
+    )
+  )
+)
 
 (define (_print exprs)
   (begin

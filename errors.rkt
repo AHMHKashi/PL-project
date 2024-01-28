@@ -21,6 +21,9 @@
 (define (report-must-not-reach-here)
   (eopl:error 'value-of "Must not reach here."))
 
+(define (report-reference-type-error)
+  (eopl:error 'store "reference used type is wrong"))
+
 (define (report-arguments-len-long function)
   (eopl:error function "Arguments length is too long."))
 
