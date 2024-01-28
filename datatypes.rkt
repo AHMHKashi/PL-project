@@ -63,9 +63,29 @@
   )
 )
 
+(define (params->first params)
+  (cases func_param* params
+    (empty-expr () "error, no first exists")
+    (expressions (param rest-params) param)  
+  )
+)
+
+(define (params->rest params)
+  (cases func_param* params
+    (empty-param () "error, no rest exists")
+    (func_params (param rest-params) rest-params)  
+  )
+)
+
 (define (is_null_expression? exprs)
   (cases expression* exprs
     (empty-expr () #t)
+    (else #f)  
+  )
+)
+(define (is_null_param? exprs)
+  (cases func_param* exprs
+    (empty-param () #t)
     (else #f)  
   )
 )

@@ -91,6 +91,33 @@
             NULL
           )
         )
+        (func (name params statements)
+          (let loop ([params params])
+            (cases func_param* params
+              [empty-param]
+  (func_params (param func_param?) (rest-params func_param*?))
+            )
+          )
+        )
+      ;       (function-def-exp (ID params return-type statements)
+      ; (let* ([thunk-params
+      ;   (map
+      ;     (lambda (p)
+      ;       (cases exp p
+      ;         (param-with-default-exp (lhs rhs)
+      ;           (cases exp lhs
+      ;             (assignment-lhs-exp (ID dtype)
+      ;               (list ID (a-thunk rhs the-scope-env)))
+      ;             (else (report-type-error 'value-of))))
+      ;         (else (report-type-error 'value-of))))
+      ;     (exp->params params))]
+      ;         [val (ref-val (newref (proc-val (a-proc ID thunk-params statements))))]
+      ;   )
+
+      ;   (update-global-env! (extend-env ID val the-global-env))
+      ;   (update-scope-env! (extend-env ID val the-scope-env))
+      ;   (void-val)))
+
         (for_stmt (iter list_exp sts)
           (let ([list_exp (exp->value (value-of-expression list_exp))]) ;get the expression* object as list
             (_assign iter NULL)
@@ -116,7 +143,6 @@
         )
 
         (return (expr) "not implemented: global\n")
-        (func (name params statements) "not implemented: func\n")
     )
   )
 )
@@ -137,7 +163,6 @@
     )
   )
 )
-
 
 (define (_print exprs)
   (begin

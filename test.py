@@ -1,0 +1,3 @@
+def random():
+    pass;
+;
