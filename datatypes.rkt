@@ -41,6 +41,8 @@
   (break_flag)
   (return_void_flag)
   (pass_flag)
+  (return_flag (val expression?))
+  (ref_val (ref number?))
 )
 
 
@@ -106,6 +108,7 @@
     ; [function_call (func params) "not supported"]
     ; [list_ref (ref index) ref]
     [ref (var) var]
+    [ref_val (ref) ref]
     [else "not supported"]
   )
 )

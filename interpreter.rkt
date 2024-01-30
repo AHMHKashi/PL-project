@@ -7,16 +7,16 @@
 (require "env.rkt")
 (require "errors.rkt")
 (require "store.rkt")
-
+(require "proc.rkt")
 
 ; constants
-(define FILE_NAME "test.py")
+(define FILE_NAME "test_4.py")
 (define NULL (atomic_null_exp))
 (define DELIMITER ", ")
 
 (define PASS (pass_flag))
 (define CONTINUE (continue_flag))
-(define RETURN_VOID (return_void_flag))
+(define RETURN_VOID (return_flag NULL))
 (define BREAK (break_flag))
 
 
@@ -59,7 +59,7 @@
               (let ([value (value-of (car stms))])
                 (cases expression value
                   (break_flag () NULL)
-                  (return_void_flag () NULL)
+                  (return_flag (val) val)
                   (continue_flag () NULL)
                   (pass_flag () NULL)
                   (else (loop (cdr stms)))
@@ -91,26 +91,25 @@
             NULL
           )
         )
-        (func (name params statements) "not implemented: func")
-      ;       (function-def-exp (ID params return-type statements)
-      ; (let* ([thunk-params
-      ;   (map
-      ;     (lambda (p)
-      ;       (cases exp p
-      ;         (param-with-default-exp (lhs rhs)
-      ;           (cases exp lhs
-      ;             (assignment-lhs-exp (ID dtype)
-      ;               (list ID (a-thunk rhs the-scope-env)))
-      ;             (else (report-type-error 'value-of))))
-      ;         (else (report-type-error 'value-of))))
-      ;     (exp->params params))]
-      ;         [val (ref-val (newref (proc-val (a-proc ID thunk-params statements))))]
-      ;   )
-
-      ;   (update-global-env! (extend-env ID val the-global-env))
-      ;   (update-scope-env! (extend-env ID val the-scope-env))
-      ;   (void-val)))
-
+      (func (name params statements-list)
+            (let* ([thunk-params
+                    (letrec ([param-to-list
+                              (lambda (p)
+                                (cases func_param* p
+                                  (empty-param () '())
+                                  (func_params (param rest-params)
+                                               (cases func_param param
+                                                 (with_default (name exp) (cons (list name (a-thunk exp the-scope-env)) (param-to-list rest-params)))
+                                                 (else (report-type-error 'value-of))
+                                                 ))
+                                  )
+                                )]) (param-to-list params))]
+                   [reference (ref_val (newref (a-proc name thunk-params (statements statements-list))))]
+                   )
+              (update-global-env! (extend-env name reference the-global-env))
+              (update-scope-env! (extend-env name reference the-scope-env))
+              NULL)
+            )
         (for_stmt (iter list_exp sts)
           (let ([list_exp (exp->value (value-of-expression list_exp))]) ;get the expression* object as list
             (_assign iter NULL)
@@ -124,7 +123,7 @@
                       (cases expression val
                         (break_flag () NULL)
                         (continue_flag () (loop (exprs->rest list_exp)))
-                        (return_void_flag () NULL)
+                        (return_flag (val) val)
                         (else (loop (exprs->rest list_exp)))
                       )
                     )
@@ -135,7 +134,7 @@
           )
         )
 
-        (return (expr) "not implemented: global\n")
+        (return (expr) (return_flag (value-of-expression expr)))
     )
   )
 )
@@ -144,13 +143,13 @@
   (let ([current_address (apply-env var the-scope-env)])
     (cases expression current_address
       [atomic_null_exp () 
-        (let ([reference (atomic_num_exp (newref (value-of-expression expr)))])
+        (let ([reference (ref_val (newref (value-of-expression expr)))])
           (when (global-scope? the-scope-env)
               (update-global-env! (extend-env var reference the-global-env)))
           (update-scope-env! (extend-env var reference the-scope-env))
         )
       ]
-      [atomic_num_exp (num) (setref! num (value-of-expression expr))]
+      [ref_val (num) (setref! num (value-of-expression expr))]
       [else report-reference-type-error]
     )
   )
@@ -209,20 +208,55 @@
   ; (print expr)
   ; (newline)
   (cases expression expr
-      [binary_op (op left right)
-        (let ([result (op (exp->value (value-of-expression left)) (exp->value (value-of-expression right)))])
-          (if (boolean? result)
-            (atomic_bool_exp result)
-            (atomic_num_exp result)
-          )
-        )
-      ]
-      [unary_op (op operand) 
-        (atomic_bool_exp (op (exp->value (value-of-expression operand))))
-      ]
-      [function_call (func params) "not implemented"]
-
-      [ref (var) (deref (exp->value (apply-env var the-scope-env)))]
+    [binary_op (op left right)
+               (let ([result (op (exp->value (value-of-expression left)) (exp->value (value-of-expression right)))])
+                 (if (boolean? result)
+                     (atomic_bool_exp result)
+                     (atomic_num_exp result)
+                     )
+                 )
+               ]
+    [unary_op (op operand) 
+              (atomic_bool_exp (op (exp->value (value-of-expression operand))))
+              ]
+    ; [function_call (func args) ""]
+    [function_call (func args)
+                   (let ([function (value-of-expression func)]
+                         [old-scope-env the-scope-env])
+                     (update-scope-env! (extend-env-with-functions (empty-env #f)))
+                     (cases proc function
+                       (a-proc (p-name params p-body)
+                               (let loop ([arguments args]
+                                          [params params])
+                                 (cond
+                                   [(null? params) 888]
+                                   [else (cases expression* arguments
+                                           (empty-expr () (let ([param-def (car params)])
+                                                            (update-scope-env! (extend-env
+                                                                                (car param-def)
+                                                                                (ref_val (newref (cadr param-def)))
+                                                                                the-scope-env))
+                                                            (loop arguments (cdr params))))
+                                           (expressions (expr rest-exprs) (let ([param-def (car params)])
+                                                                            (update-scope-env! (extend-env
+                                                                                                (car param-def)
+                                                                                                (ref_val (newref (a-thunk expr old-scope-env)))
+                                                                                                the-scope-env))
+                                                                            (loop rest-exprs (cdr params))))
+                                           )]))
+                               (let ([ret-val (value-of p-body)])
+                                 (update-scope-env! old-scope-env)
+                                 ret-val))
+                       (else (report-type-error 'value-of))))
+                   ]
+    [ref (var)
+         (let ([val (deref (exp->value (apply-env var the-scope-env)))])
+           (if (thunk? val)
+               (value-of-thunk val)
+               val
+               )
+           )
+         ]
       [list_ref (ref index)
 
         (let ([lst (exp->value (value-of-expression ref))]
@@ -249,6 +283,17 @@
   )
   )
 )
+
+
+
+(define (value-of-thunk the-thunk)
+  (cases thunk the-thunk
+    (a-thunk (exp saved-env)
+      (let ([old-scope-env the-scope-env])
+        (update-scope-env! saved-env)
+        (let ([val (value-of-expression exp)])
+          (update-scope-env! old-scope-env)
+          val)))))
 
 ; run test
 ; (print (evaluate_print FILE_NAME))
