@@ -123,7 +123,7 @@
                       (cases expression val
                         (break_flag () NULL)
                         (continue_flag () (loop (exprs->rest list_exp)))
-                        (return_flag (val) val)
+                        (return_flag (ret_val) val)
                         (else (loop (exprs->rest list_exp)))
                       )
                     )
