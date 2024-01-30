@@ -59,7 +59,7 @@
               (let ([value (value-of (car stms))])
                 (cases expression value
                   (break_flag () NULL)
-                  (return_flag (val) val)
+                  (return_flag (val) value)
                   (continue_flag () NULL)
                   (pass_flag () NULL)
                   (else (loop (cdr stms)))
@@ -246,7 +246,11 @@
                                            )]))
                                (let ([ret-val (value-of p-body)])
                                  (update-scope-env! old-scope-env)
-                                 ret-val))
+                                 (cases expression ret-val
+                                   (return_flag (val) val)
+                                   (atomic_null_exp () NULL)
+                                   (else (report-type-error 'value-of)))
+                                 ))
                        (else (report-type-error 'value-of))))
                    ]
     [ref (var)
