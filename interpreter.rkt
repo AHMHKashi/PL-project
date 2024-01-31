@@ -10,7 +10,7 @@
 (require "proc.rkt")
 
 ; constants
-(define FILE_NAME "test.py")
+(define FILE_NAME "range.py")
 (define NULL (atomic_null_exp))
 (define DELIMITER ", ")
 
@@ -320,7 +320,7 @@
       [atomic_bool_exp (bool) expr]
       [atomic_num_exp (num) expr]
       [atomic_null_exp () expr]
-      [atomic_list_exp (l) expr]
+      [atomic_list_exp (l) (atomic_list_exp (value-of-each l))]
       [else expr]
   )
   )
@@ -352,6 +352,14 @@
         (let ([val (value-of-expression exp)])
           (update-scope-env! old-scope-env)
           val)))))
+
+(define (value-of-each l)
+  (cases expression* l
+    (empty-expr () (empty-expr))
+    (expressions (expr rest-exprs) (expressions (value-of-expression expr) (value-of-each rest-exprs)))
+    )
+  )
+  
 
 ; run test
 ;(print (evaluate_print FILE_NAME))
