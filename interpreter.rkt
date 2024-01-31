@@ -10,7 +10,7 @@
 (require "proc.rkt")
 
 ; constants
-(define FILE_NAME "test_lazy3.py")
+(define FILE_NAME "test_lazy1.py")
 (define NULL (atomic_null_exp))
 (define DELIMITER ", ")
 
@@ -143,13 +143,13 @@
   (let ([current_address (apply-env var the-scope-env)])
     (cases expression current_address
       [atomic_null_exp () 
-        (let ([reference (ref_val (newref (value-of-expression expr)))])
+        (let ([reference (ref_val (newref (a-thunk expr the-scope-env)))])
           (when (global-scope? the-scope-env)
               (update-global-env! (extend-env var reference the-global-env)))
           (update-scope-env! (extend-env var reference the-scope-env))
         )
       ]
-      [ref_val (num) (setref! num (value-of-expression expr))]
+      [ref_val (num) (setref! num (a-thunk expr the-scope-env))]
       [else report-reference-type-error]
     )
   )
@@ -305,7 +305,7 @@
           val)))))
 
 ; run test
-; (print (evaluate_print FILE_NAME))
+;(print (evaluate_print FILE_NAME))
 (evaluate FILE_NAME)
 
 

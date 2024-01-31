@@ -6,4 +6,5 @@ def s(y=8):
 
 a = s(12);
 b = s();
-
+c = a + b;
+print(a);

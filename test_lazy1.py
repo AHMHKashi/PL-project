@@ -3,8 +3,9 @@ def s(y=8):
     return y + 1;
     ;
 
-def func(x=s()):
-    return 12;
+def func(x=5):
+    y = x + 2;
+    return y;
     ;
 
 print(func(s(4)));
