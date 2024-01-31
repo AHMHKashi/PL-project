@@ -170,10 +170,10 @@
   ; (newline)
   (cases expression* exprs
     [empty-expr () NULL]
-    [expressions (expr rest-exprs) 
+    [expressions (expr rest-exprs)
       (cases expression* rest-exprs
         (empty-expr () (_pyprint (exprs->first exprs)))
-        (expressions (new-expr new-rest-exprs) (_pyprint expr) (display DELIMITER) (_print rest-exprs))
+        (expressions (new-expr new-rest-exprs) (_print rest-exprs) (display DELIMITER) (_pyprint expr) )
       )
     ]
   )
@@ -201,15 +201,17 @@
       (display "[")
       (let loop ([lst lst])
         (if (is_null_expression? lst)
-          NULL
-          (begin
-            (_pyprint (exprs->first lst))
-            (when (not (is_null_expression? (exprs->rest lst)))
-              (display DELIMITER))
-            (loop (exprs->rest lst)))))
+            NULL
+            (begin
+              (loop (exprs->rest lst))
+              (when (not (is_null_expression? (exprs->rest lst)))
+                (display DELIMITER))
+              (_pyprint (exprs->first lst))
+            
+              )))
       (display "]"))
     (else (report-type-error 'print))))
-))
+  ))
 
 (define (value-of-expression expr)
   (begin
@@ -333,7 +335,7 @@
           val)))))
 
 ; run test
-;(print (evaluate_print FILE_NAME))
+(print (evaluate_print FILE_NAME))
 (evaluate FILE_NAME)
 
 
