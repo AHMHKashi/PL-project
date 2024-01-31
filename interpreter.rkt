@@ -332,7 +332,10 @@
     (cases expression ref
       [ref_val (address) (let ([val (deref address)])
                            (if (thunk? val)
-                               (value-of-thunk val)
+                               (let ([evaluated (value-of-thunk val)])
+                                 (setref! address evaluated)
+                                 evaluated
+                                 )
                                val
                                )
                            )
