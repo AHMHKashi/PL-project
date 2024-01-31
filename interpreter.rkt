@@ -10,7 +10,7 @@
 (require "proc.rkt")
 
 ; constants
-(define FILE_NAME "test_global.py")
+(define FILE_NAME "test.py")
 (define NULL (atomic_null_exp))
 (define DELIMITER ", ")
 
@@ -164,6 +164,20 @@
   )
 )
 
+(define (append-exprs exprs1 exprs2)
+  (begin
+  ; (print exprs)
+  ; (newline)
+  (cases expression* exprs1
+    [empty-expr () exprs2]
+    [expressions (head rest-exprs)
+        (expressions head (append-exprs rest-exprs exprs2))
+      
+    ]
+  )
+  )
+)
+
 (define (_print exprs)
   (begin
   ; (print exprs)
@@ -221,15 +235,20 @@
     (cases expression expr
       [binary_op (op left right)
                  (let ([left-val (exp->value (value-of-expression left))])
-                 (if (and (equal? op *) (zero? left-val))
-                     (atomic_num_exp 0)
-                     (let ([result (op left-val (exp->value (value-of-expression right)))])
-                       (if (boolean? result)
-                           (atomic_bool_exp result)
-                           (atomic_num_exp result)
-                           )
+                   (if (and (equal? op *) (zero? left-val))
+                       (atomic_num_exp 0)
+                       (let ([right-val (exp->value (value-of-expression right))])
+                         (if (expression*? left-val)
+                             (atomic_list_exp (append-exprs right-val left-val))
+                             (let ([result (op left-val right-val)])
+                               (if (boolean? result)
+                                   (atomic_bool_exp result)
+                                   (atomic_num_exp result)
+                                   )
+                               )
+                             )
+                         )
                        )
-                     )
                    )
                  ]
       [unary_op (op operand) 
@@ -335,7 +354,7 @@
           val)))))
 
 ; run test
-(print (evaluate_print FILE_NAME))
+;(print (evaluate_print FILE_NAME))
 (evaluate FILE_NAME)
 
 
