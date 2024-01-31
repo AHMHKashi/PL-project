@@ -290,9 +290,9 @@
                    ]
       [ref (var)
            (let ([val (get-ref-in-env var the-scope-env)])
-             (if (equal? val NULL)
+             (if (equal? val #f)
                  (let ([g-val (get-ref-in-env var the-global-env)])
-                   (if (equal? g-val NULL)
+                   (if (equal? g-val #f)
                        (report-invalid-reference var)
                        g-val)
                    )
@@ -340,7 +340,7 @@
                                )
                            )
                ]
-      [atomic_null_exp () NULL]
+      [atomic_null_exp () #f]
       [else (report-invalid-reference name)]
       )
     )
