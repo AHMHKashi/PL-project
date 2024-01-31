@@ -10,7 +10,7 @@
 (require "proc.rkt")
 
 ; constants
-(define FILE_NAME "test_4.py")
+(define FILE_NAME "test_lazy3.py")
 (define NULL (atomic_null_exp))
 (define DELIMITER ", ")
 
@@ -207,16 +207,21 @@
   ; (printf "value-of-expressison: ")
   ; (print expr)
   ; (newline)
-  (cases expression expr
-    [binary_op (op left right)
-               (let ([result (op (exp->value (value-of-expression left)) (exp->value (value-of-expression right)))])
-                 (if (boolean? result)
-                     (atomic_bool_exp result)
-                     (atomic_num_exp result)
+    (cases expression expr
+      [binary_op (op left right)
+                 (let ([left-val (exp->value (value-of-expression left))])
+                 (if (and (equal? op *) (zero? left-val))
+                     (atomic_num_exp 0)
+                     (let ([result (op left-val (exp->value (value-of-expression right)))])
+                       (if (boolean? result)
+                           (atomic_bool_exp result)
+                           (atomic_num_exp result)
+                           )
+                       )
                      )
-                 )
-               ]
-    [unary_op (op operand) 
+                   )
+                 ]
+      [unary_op (op operand) 
               (atomic_bool_exp (op (exp->value (value-of-expression operand))))
               ]
     ; [function_call (func args) ""]
