@@ -121,20 +121,20 @@
               NULL)
             )
         (for_stmt (iter list_exp sts)
-          (let ([list_exp (exp->value (value-of-expression list_exp))]) ;get the expression* object as list
+          (let ([list_exp (exp*->list (exp->value (value-of-expression list_exp)))]) ;get the expression* object as list
             (_assign iter NULL)
             (let ([iter-ref (exp->value (apply-env iter the-scope-env))]) ; iter-ref is now the address of our iter. actually a pointer
               (let loop ([list_exp list_exp])
-                (if (is_null_expression? list_exp)
+                (if (null? list_exp)
                   NULL
                   (begin
-                    (setref! iter-ref (exprs->first list_exp))
+                    (setref! iter-ref (car list_exp))
                     (let ([val (value-of (statements sts))])
                       (cases expression val
                         (break_flag () NULL)
-                        (continue_flag () (loop (exprs->rest list_exp)))
+                        (continue_flag () (loop (cdr list_exp)))
                         (return_flag (ret_val) val)
-                        (else (loop (exprs->rest list_exp)))
+                        (else (loop (cdr list_exp)))
                       )
                     )
                   )
@@ -303,7 +303,7 @@
            ]
       [list_ref (ref index)
 
-        (let ([lst (exp->value (value-of-expression ref))]
+        (let ([lst (exp*->list (exp->value (value-of-expression ref)))]
               [index (exp->value (value-of-expression index))])
             ; (printf "ref: ")
             ; (print ref)
@@ -313,8 +313,8 @@
             ; (newline)
             
             (let loop ([lst lst][index index])
-                (if (is_null_expression? lst) report-index-out-of-bound
-                (if (zero? index) (exprs->first lst) (loop (exprs->rest lst) (- index 1)))
+                (if (null? lst) report-index-out-of-bound
+                (if (zero? index) (car lst) (loop (cdr lst) (- index 1)))
               )
             )
         )
