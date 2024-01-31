@@ -6,8 +6,6 @@ def range(a=0, b=10, step=1):
     ;
 ;
 
-print(range(10, 20, 2));
-
 def len(l=[]):
     x = 0;
     for i in l:
@@ -15,8 +13,6 @@ def len(l=[]):
     ;
     return x;
 ;
-
-print(len([5, 3, 4, 8]));
 
 def swap(arr=[], i=0, j=1):
     res = [];
@@ -35,7 +31,32 @@ def swap(arr=[], i=0, j=1):
     ;
     return res;
 ;
+ 
+def bubbleSort(arr=[]):
+    n = len(arr);
 
-a = [5, 8, 9, 3];
-print(swap(a, 1, 3));
-print(swap(a, 0, 1));
+    swapped = False;
+    for i in range(0, n):
+        for j in range(0, n-i-1):
+            if arr[j] > arr[j + 1]:
+                swapped = True;
+                arr = swap(arr, j, j+1);
+                print(arr);
+            else:
+                pass;
+            ;
+        ;
+        if swapped == False:
+            break;
+        else:
+            continue;
+        ;
+    ;
+
+    return arr;
+;
+
+arr = [64, 34, 25, 12, 22, 11, 90];
+print(arr);
+sorted = bubbleSort(arr);
+print(sorted);
