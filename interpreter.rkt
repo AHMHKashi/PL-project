@@ -104,15 +104,16 @@
             (let* ([thunk-params
                     (letrec ([param-to-list
                               (lambda (p)
-                                (cases func_param* p
-                                  (empty-param () '())
-                                  (func_params (param rest-params)
-                                               (cases func_param param
-                                                 (with_default (name exp) (cons (list name (a-thunk exp the-scope-env)) (param-to-list rest-params)))
-                                                 (else (report-type-error 'value-of))
-                                                 ))
-                                  )
-                                )]) (param-to-list params))]
+                                (if (null? p)
+                                    '()
+                                    (let ([param (car p)])
+                                      (cases func_param param
+                                        (with_default (name exp) (cons (list name (a-thunk exp the-scope-env)) (param-to-list (cdr p))))
+                                        (else (report-type-error 'value-of))
+                                        )
+                                      )
+                                    )
+                                )]) (param-to-list (func_param*->list params)))]
                    [reference (ref_val (newref (a-proc name thunk-params (statements statements-list))))]
                    )
               (update-global-env! (extend-env name reference the-global-env))
@@ -262,23 +263,23 @@
                      (update-scope-env! (extend-env-with-functions (empty-env #f)))
                      (cases proc function
                        (a-proc (p-name params p-body)
-                               (let loop ([arguments args]
+                               (let loop ([arguments (exp*->list args)]
                                           [params params])
                                  (cond
                                    [(null? params) 888]
-                                   [else (cases expression* arguments
-                                           (empty-expr () (let ([param-def (car params)])
+                                   [else (if (null? arguments)
+                                           (let ([param-def (car params)])
                                                             (update-scope-env! (extend-env
                                                                                 (car param-def)
                                                                                 (ref_val (newref (cadr param-def)))
                                                                                 the-scope-env))
-                                                            (loop arguments (cdr params))))
-                                           (expressions (expr rest-exprs) (let ([param-def (car params)])
+                                                            (loop arguments (cdr params)))
+                                           (let ([expr (car arguments)][param-def (car params)])
                                                                             (update-scope-env! (extend-env
                                                                                                 (car param-def)
                                                                                                 (ref_val (newref (a-thunk expr old-scope-env)))
                                                                                                 the-scope-env))
-                                                                            (loop rest-exprs (cdr params))))
+                                                                            (loop (cdr arguments) (cdr params)))
                                            )]))
                                (let ([ret-val (value-of p-body)])
                                  (update-scope-env! old-scope-env)

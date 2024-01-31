@@ -115,5 +115,19 @@
 )
 )
 
+(define (exp*->list exprs)
+  (cases expression* exprs
+    (empty-expr () '())
+    (expressions (expr rest-exprs) (append (exp*->list rest-exprs) (list expr)))  
+    )
+  )
+
+(define (func_param*->list params)
+  (cases func_param* params
+    (empty-param () '())
+    (func_params (param rest-params) (append (func_param*->list rest-params) (list param)))
+    )
+  )
+
 (provide (all-defined-out))
 (#%provide (all-defined))
