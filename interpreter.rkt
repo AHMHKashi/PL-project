@@ -10,7 +10,7 @@
 (require "proc.rkt")
 
 ; constants
-(define FILE_NAME "range.py")
+(define FILE_NAME "library.py")
 (define NULL (atomic_null_exp))
 (define DELIMITER ", ")
 
@@ -158,7 +158,8 @@
           (update-scope-env! (extend-env var reference the-scope-env))
         )
       ]
-      [ref_val (num) (setref! num (a-thunk expr the-scope-env))]
+      [ref_val (address) (let ([saved-env (extend-env var (thunk_val (deref address)) the-scope-env)])
+                           (setref! address (a-thunk expr saved-env)))]
       [else report-reference-type-error]
     )
   )
@@ -340,6 +341,10 @@
                                )
                            )
                ]
+      [thunk_val (thunk) (if (thunk? thunk)
+                             (value-of-thunk thunk)
+                             thunk
+                             )]
       [atomic_null_exp () #f]
       [else (report-invalid-reference name)]
       )

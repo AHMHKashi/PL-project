@@ -43,6 +43,7 @@
   (pass_flag)
   (return_flag (val expression?))
   (ref_val (ref number?))
+  (thunk_val (thunk struct?)) 
 )
 
 
