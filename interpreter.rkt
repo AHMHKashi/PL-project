@@ -10,7 +10,7 @@
 (require "proc.rkt")
 
 ; constants
-(define FILE_NAME "test_lazy1.py")
+(define FILE_NAME "test_global.py")
 (define NULL (atomic_null_exp))
 (define DELIMITER ", ")
 
@@ -87,7 +87,16 @@
 
         (global (var) 
           (let ([ref (apply-env var the-global-env)])
-            (update-scope-env! (extend-env var ref the-scope-env))
+            (cases expression ref
+              [atomic_null_exp () 
+                               (let ([reference (ref_val (newref NULL))])
+                                 (update-global-env! (extend-env var reference the-global-env))
+                                 (update-scope-env! (extend-env var reference the-scope-env))
+                                 )
+                               ]
+              [ref_val (num) (update-scope-env! (extend-env var ref the-scope-env))]
+              [else report-reference-type-error]
+              )
             NULL
           )
         )
@@ -258,14 +267,17 @@
                                  ))
                        (else (report-type-error 'value-of))))
                    ]
-    [ref (var)
-         (let ([val (deref (exp->value (apply-env var the-scope-env)))])
-           (if (thunk? val)
-               (value-of-thunk val)
-               val
-               )
-           )
-         ]
+      [ref (var)
+           (let ([val (get-ref-in-env var the-scope-env)])
+             (if (equal? val NULL)
+                 (let ([g-val (get-ref-in-env var the-global-env)])
+                   (if (equal? g-val NULL)
+                       (report-invalid-reference var)
+                       g-val)
+                   )
+                 val)
+             )
+           ]
       [list_ref (ref index)
 
         (let ([lst (exp->value (value-of-expression ref))]
@@ -293,6 +305,22 @@
   )
 )
 
+
+(define (get-ref-in-env name env)
+  (let ([ref (apply-env name env)])
+    (cases expression ref
+      [ref_val (address) (let ([val (deref address)])
+                           (if (thunk? val)
+                               (value-of-thunk val)
+                               val
+                               )
+                           )
+               ]
+      [atomic_null_exp () NULL]
+      [else (report-invalid-reference name)]
+      )
+    )
+  )
 
 
 (define (value-of-thunk the-thunk)
